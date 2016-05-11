@@ -6,49 +6,54 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PropertiesSettings implements ISettings {
 
-	static enum PropertyKey {
-		STOP_ID("stopid"),
-		ROUTE_CODE("routecode"),
-		API_KEY("apikey"),
-		WALK_TIME("time.walk"),
-		YELLOW_TIME("time.yellow"),
-		GREEN_TIME("time.green"),
-		MIN_WAIT_TIME("time.wait.min"),
-		MAX_WAIT_TIME("time.wait.max");
+	public static enum PropertyKey {
+		STOP_ID("stopid", "30141"),
+		ROUTE_CODE("routecode", "P"),
+		API_KEY("apikey", "invalid"),
+		WALK_TIME("time.walk", "600"),
+		YELLOW_TIME("time.yellow", "60"),
+		GREEN_TIME("time.green", "120"),
+		MIN_WAIT_TIME("time.wait.min", "30"),
+		MAX_WAIT_TIME("time.wait.max", "600");
 
 		private String _key;
+		private String _defaultValue;
 
-		private PropertyKey(String key) {
+		private PropertyKey(String key, String defaultValue) {
 			_key = key;
+			_defaultValue = defaultValue;
 		}
 
 		public String getString() {
 			return _key;
+		}
+
+		public String getDefaultValue() {
+			return _defaultValue;
 		}
 	}
 
 	@Autowired
 	private IConfigStreamProvider _streamProvider;
 
+	private Logger _logger = LoggerFactory.getLogger(getClass());
+
 	private Properties _properties;
 
 	@PostConstruct
 	public void postConstruct() throws IOException {
 		_properties = new Properties();
-		_properties.setProperty(PropertyKey.STOP_ID.getString(), "30141");
-		_properties.setProperty(PropertyKey.ROUTE_CODE.getString(), "P");
-		_properties.setProperty(PropertyKey.API_KEY.getString(), "invalid");
-		_properties.setProperty(PropertyKey.WALK_TIME.getString(), "600");
-		_properties.setProperty(PropertyKey.YELLOW_TIME.getString(), "60");
-		_properties.setProperty(PropertyKey.GREEN_TIME.getString(), "120");
-		_properties.setProperty(PropertyKey.MIN_WAIT_TIME.getString(), "30");
-		_properties.setProperty(PropertyKey.MAX_WAIT_TIME.getString(), "600");
+		for (PropertyKey key : PropertyKey.values()) {
+			_properties.setProperty(key.getString(), key.getDefaultValue());
+		}
 
 		try (InputStream is = _streamProvider.getStream()) {
 			if (is != null) {
@@ -59,6 +64,11 @@ public class PropertiesSettings implements ISettings {
 		}
 
 		applyOver(_properties, System.getProperties());
+
+		if (getMinWaitTime() < 30) {
+			_logger.warn("Ignoring invalid time.wait.min: {}", getMinWaitTime());
+			_properties.setProperty(PropertyKey.MIN_WAIT_TIME.getString(), "30");
+		}
 	}
 
 	private void applyOver(Properties base, Properties overrides) {
