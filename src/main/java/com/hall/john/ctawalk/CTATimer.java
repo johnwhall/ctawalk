@@ -3,6 +3,8 @@ package com.hall.john.ctawalk;
 import java.awt.Color;
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,10 +23,12 @@ public class CTATimer {
 	@Autowired
 	private ISettings _settings;
 
+	private Logger _logger = LoggerFactory.getLogger(getClass());
+
 	@Scheduled(fixedRate = 30000)
 	public void updateTrayIconColor() {
 		int[] arrivals = _arrivalsProvider.getArrivals();
-		System.out.println("Got arrivals: " + Arrays.toString(arrivals));
+		_logger.info("Got arrivals: " + Arrays.toString(arrivals));
 
 		Color newColor = Color.RED;
 
