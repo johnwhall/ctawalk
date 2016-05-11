@@ -14,4 +14,8 @@ public interface ISettings {
 
 	int getGreenTime();
 
+	int getMinWaitTime();
+
+	int getMaxWaitTime();
+
 }

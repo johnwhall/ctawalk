@@ -4,18 +4,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -49,23 +51,24 @@ public class CTAArrivalProvider implements IArrivalsProvider {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			Document doc = db.parse(_url);
 
-			Element ctAtt = doc.getDocumentElement();
+			XPath xp = XPathFactory.newInstance().newXPath();
 
-			String errCd = getChildTextContent(ctAtt, "errCd");
+			String errCd = xp.evaluate("/ctatt/errCd", doc);
 			if (!errCd.equals("0")) {
 				new RuntimeException("Got error code: " + errCd).printStackTrace();
 				return new int[0];
 			}
 
-			for (Element etaElem : childrenList(ctAtt, (x) -> x.equals("eta"))) {
-				String prdtString = getChildTextContent(etaElem, "prdt");
+			NodeList etaNodes = (NodeList) xp.evaluate("/ctatt/eta", doc, XPathConstants.NODESET);
+			for (Node etaNode : iterableNodeList(etaNodes)) {
+				String prdtString = xp.evaluate("prdt", etaNode);
 				Date prdt = _dateFormat.parse(prdtString);
 
-				String arrTString = getChildTextContent(etaElem, "arrT");
+				String arrTString = xp.evaluate("arrT", etaNode);
 				Date arrT = _dateFormat.parse(arrTString);
 
-				int diffMins = (int) ((arrT.getTime() - prdt.getTime()) / (1000 * 60));
-				arrivals.add(diffMins);
+				int diffSecs = (int) TimeUnit.MILLISECONDS.toSeconds(arrT.getTime() - prdt.getTime());
+				arrivals.add(diffSecs);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -79,32 +82,14 @@ public class CTAArrivalProvider implements IArrivalsProvider {
 		return ret;
 	}
 
-	private static List<Element> childrenList(Element e, Predicate<String> filter) {
-		List<Element> retChildren = new ArrayList<Element>();
-		NodeList nodeList = e.getChildNodes();
+	private static List<Node> iterableNodeList(NodeList nodeList) {
+		List<Node> ret = new ArrayList<Node>();
 
 		for (int i = 0; i < nodeList.getLength(); i++) {
-			Node node = nodeList.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Element elem = (Element) node;
-				if (filter == null || filter.test(elem.getTagName())) {
-					retChildren.add(elem);
-				}
-			}
-
+			ret.add(nodeList.item(i));
 		}
 
-		return retChildren;
-	}
-
-	private static String getChildTextContent(Element e, String childTagName) {
-		for (Element child : childrenList(e, null)) {
-			if (child.getTagName().equals(childTagName)) {
-				return child.getTextContent();
-			}
-		}
-
-		return null;
+		return ret;
 	}
 
 }

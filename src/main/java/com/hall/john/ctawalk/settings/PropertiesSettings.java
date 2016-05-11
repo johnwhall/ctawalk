@@ -18,7 +18,9 @@ public class PropertiesSettings implements ISettings {
 		API_KEY("apikey"),
 		WALK_TIME("time.walk"),
 		YELLOW_TIME("time.yellow"),
-		GREEN_TIME("time.green");
+		GREEN_TIME("time.green"),
+		MIN_WAIT_TIME("time.wait.min"),
+		MAX_WAIT_TIME("time.wait.max");
 
 		private String _key;
 
@@ -42,9 +44,11 @@ public class PropertiesSettings implements ISettings {
 		_properties.setProperty(PropertyKey.STOP_ID.getString(), "30141");
 		_properties.setProperty(PropertyKey.ROUTE_CODE.getString(), "P");
 		_properties.setProperty(PropertyKey.API_KEY.getString(), "invalid");
-		_properties.setProperty(PropertyKey.WALK_TIME.getString(), "10");
-		_properties.setProperty(PropertyKey.YELLOW_TIME.getString(), "1");
-		_properties.setProperty(PropertyKey.GREEN_TIME.getString(), "2");
+		_properties.setProperty(PropertyKey.WALK_TIME.getString(), "600");
+		_properties.setProperty(PropertyKey.YELLOW_TIME.getString(), "60");
+		_properties.setProperty(PropertyKey.GREEN_TIME.getString(), "120");
+		_properties.setProperty(PropertyKey.MIN_WAIT_TIME.getString(), "30");
+		_properties.setProperty(PropertyKey.MAX_WAIT_TIME.getString(), "600");
 
 		try (InputStream is = _streamProvider.getStream()) {
 			if (is != null) {
@@ -94,6 +98,16 @@ public class PropertiesSettings implements ISettings {
 	@Override
 	public int getGreenTime() {
 		return Integer.valueOf(_properties.getProperty(PropertyKey.GREEN_TIME.getString()));
+	}
+
+	@Override
+	public int getMinWaitTime() {
+		return Integer.valueOf(_properties.getProperty(PropertyKey.MIN_WAIT_TIME.getString()));
+	}
+
+	@Override
+	public int getMaxWaitTime() {
+		return Integer.valueOf(_properties.getProperty(PropertyKey.MAX_WAIT_TIME.getString()));
 	}
 
 }

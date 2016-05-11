@@ -62,13 +62,19 @@ public class PropertiesSettingsTest {
 		params.add(new Object[] { PropertyKey.API_KEY, func, "invalid", "yes", "no" });
 
 		func = (x) -> x.getWalkTime();
-		params.add(new Object[] { PropertyKey.WALK_TIME, func, 10, 9, 8 });
+		params.add(new Object[] { PropertyKey.WALK_TIME, func, 600, 0, 1 });
 
 		func = (x) -> x.getYellowTime();
-		params.add(new Object[] { PropertyKey.YELLOW_TIME, func, 1, 0, 3 });
+		params.add(new Object[] { PropertyKey.YELLOW_TIME, func, 60, 2, 3 });
 
 		func = (x) -> x.getGreenTime();
-		params.add(new Object[] { PropertyKey.GREEN_TIME, func, 2, 4, 5 });
+		params.add(new Object[] { PropertyKey.GREEN_TIME, func, 120, 4, 5 });
+
+		func = (x) -> x.getMinWaitTime();
+		params.add(new Object[] { PropertyKey.MIN_WAIT_TIME, func, 30, 6, 7 });
+
+		func = (x) -> x.getMaxWaitTime();
+		params.add(new Object[] { PropertyKey.MAX_WAIT_TIME, func, 600, 8, 9 });
 
 		return params;
 	}

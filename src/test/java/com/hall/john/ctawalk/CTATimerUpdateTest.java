@@ -18,13 +18,10 @@ import org.mockito.MockitoAnnotations;
 import com.hall.john.ctawalk.settings.ISettings;
 
 @RunWith(Parameterized.class)
-public class CTATimerTest {
+public class CTATimerUpdateTest {
 
 	@Mock
 	private ISettings _settings;
-
-	@Mock
-	private IArrivalsProvider _provider;
 
 	@Mock
 	private ITrayIcon _trayIcon;
@@ -70,8 +67,7 @@ public class CTATimerTest {
 
 	@Test
 	public void doTest() {
-		Mockito.when(_provider.getArrivals()).thenReturn(_arrivals);
-		_timer.updateTrayIconColor();
+		_timer.updateTrayIconColor(_arrivals);
 		Mockito.verify(_trayIcon).changeColor(_expectedColor);
 	}
 
